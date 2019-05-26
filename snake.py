@@ -70,7 +70,6 @@ class Snake:
         return self.snake_pos_y
 
     def draw_snake(self):
-        print self.accretion
         if(self.accretion > 0):
             for x in xrange(self.accretion):
                 self.draw_dict[self.direction_of_movement](x)
