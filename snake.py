@@ -36,11 +36,10 @@ def draw_map():
     pygame.draw.rect(SCREEN, GREEN, Rect(x, y, x1, y1))
 
 
-class Snake:
+class Unit_Snake:
     snake_pos_x = custom_rand_int()
     snake_pos_y = custom_rand_int()
-    accretion = 0
-    is_accretion = False
+    accretion = 1
     direction_of_movement = -1
     counter = 0
     draw_dict = {}
@@ -69,23 +68,21 @@ class Snake:
     def get_snake_pos_y(self):
         return self.snake_pos_y
 
-    def draw_snake(self):
-        if(self.accretion > 0):
-            for x in xrange(self.accretion):
-                self.draw_dict[self.direction_of_movement](x)
-        else:
-            self.draw_dict[self.direction_of_movement](self.accretion)
+    def set_snake_pos_x(self, snake_pos_x):
+        self.snake_pos_x = snake_pos_x
 
-    def move_snake(self, event):
-        if(event.type == pygame.KEYDOWN):
-            if(event.key == K_DOWN):
-                self.direction_of_movement = 0
-            if(event.key == K_UP):
-                self.direction_of_movement = 1
-            if(event.key == K_LEFT):
-                self.direction_of_movement = 2
-            if(event.key == K_RIGHT):
-                self.direction_of_movement = 3
+    def set_snake_pos_y(self, snake_pos_y):
+        self.snake_pos_y = snake_pos_y
+
+    def get_direction_of_movement():
+        return direction_of_movement
+
+    def set_direction_of_movement(direction_of_movement):
+        self.direction_of_movement = direction_of_movement
+
+    def draw_snake(self):
+        for x in xrange(self.accretion):
+            self.draw_dict[self.direction_of_movement](x)
 
     def move(self):
         self.counter += 1
@@ -98,9 +95,6 @@ class Snake:
                 self.snake_pos_x = 590 if (self.snake_pos_x - 10) < 40 else self.snake_pos_x - 10
             if(self.direction_of_movement == 3):
                 self.snake_pos_x = 40 if (self.snake_pos_x + 10) > 590 else self.snake_pos_x + 10
-
-    def eat_fruit(self):
-        self.accretion += 1
 
 
 class Fruit:
@@ -135,6 +129,35 @@ def eat_fruit_action(snake, fruit):
         snake.eat_fruit()
         fruit.set_fruit_pos_x(custom_rand_int())
         fruit.set_fruit_pos_y(custom_rand_int())
+
+
+class Snake:
+    head = Unit_Snake()
+    body = []
+
+    def __init__():
+        head.set_snake_pos_x = custom_rand_int()
+        head.set_snake_pos_y = custom_rand_int()
+
+    def draw_snake(head, body):
+        # Pop snake_unit from body to pop it
+        if(body.len < 2):
+            return
+        else:
+            head.draw_snake()
+            return draw_snake(body.pop(), body)
+
+    def move_snake(self, event):
+        # Pop snake_unit from body to move it
+        if(event.type == pygame.KEYDOWN):
+            if(event.key == K_DOWN):
+                self.direction_of_movement = 0
+            if(event.key == K_UP):
+                self.direction_of_movement = 1
+            if(event.key == K_LEFT):
+                self.direction_of_movement = 2
+            if(event.key == K_RIGHT):
+                self.direction_of_movement = 3
 
 
 def play_game():
