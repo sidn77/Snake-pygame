@@ -1,12 +1,10 @@
 import random
 import pygame
-import time
 from pygame.locals import *
 
 WIDTH = 640
 HEIGHT = 480
 
-SNAKE_LENGTH = 10
 FRUIT_SIZE = 1
 
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -14,8 +12,8 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 GREEN = [50, 125, 25]
 BROWN = [90, 10, 0]
 
-SNAKE_LENGTH = 10
-SNAKE_WIDTH = 10
+SNAKE_UNIT_LENGTH = 10
+SNAKE_UNIT_WIDTH = 10
 
 
 def custom_rand_int():
@@ -41,14 +39,29 @@ def draw_map():
 class Snake:
     snake_pos_x = custom_rand_int()
     snake_pos_y = custom_rand_int()
-    accretion = 1
-    move_up = False
-    move_down = False
-    move_left = False
-    move_right = False
+    accretion = 0
+    is_accretion = False
+    direction_of_movement = -1
     counter = 0
+    draw_dict = {}
 
-    # def __init__():
+    def __init__(self):
+        self.draw_dict = {-1: lambda acc: pygame.draw.rect(SCREEN, BROWN,
+                                               Rect(self.snake_pos_x, self.snake_pos_y,
+                                                    SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH)),
+                          0: lambda acc: pygame.draw.rect(SCREEN, BROWN,
+                                              Rect(self.snake_pos_x, self.snake_pos_y - acc,
+                                                   SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH)),
+                          1: lambda acc: pygame.draw.rect(SCREEN, BROWN,
+                                              Rect(self.snake_pos_x, self.snake_pos_y + acc,
+                                                   SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH)),
+                          2: lambda acc: pygame.draw.rect(SCREEN, BROWN,
+                                              Rect(self.snake_pos_x + acc, self.snake_pos_y,
+                                                   SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH)),
+                          3: lambda acc: pygame.draw.rect(SCREEN, BROWN,
+                                              Rect(self.snake_pos_x - acc, self.snake_pos_y,
+                                                   SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH))
+                          }
 
     def get_snake_pos_x(self):
         return self.snake_pos_x
@@ -57,43 +70,34 @@ class Snake:
         return self.snake_pos_y
 
     def draw_snake(self):
-        pygame.draw.rect(SCREEN, BROWN,
-                         Rect(self.snake_pos_x, self.snake_pos_y,
-                              SNAKE_LENGTH * self.accretion, SNAKE_WIDTH))
+        print self.accretion
+        if(self.accretion > 0):
+            for x in xrange(self.accretion):
+                self.draw_dict[self.direction_of_movement](x)
+        else:
+            self.draw_dict[self.direction_of_movement](self.accretion)
 
     def move_snake(self, event):
         if(event.type == pygame.KEYDOWN):
             if(event.key == K_DOWN):
-                self.move_down = True
-                self.move_up = False
-                self.move_left = False
-                self.move_right = False
+                self.direction_of_movement = 0
             if(event.key == K_UP):
-                self.move_up = True
-                self.move_down = False
-                self.move_left = False
-                self.move_right = False
+                self.direction_of_movement = 1
             if(event.key == K_LEFT):
-                self.move_left = True
-                self.move_up = False
-                self.move_down = False
-                self.move_right = False
+                self.direction_of_movement = 2
             if(event.key == K_RIGHT):
-                self.move_right = True
-                self.move_up = False
-                self.move_left = False
-                self.move_down = False
+                self.direction_of_movement = 3
 
     def move(self):
         self.counter += 1
         if(self.counter % 400 == 0):
-            if(self.move_up):
+            if(self.direction_of_movement == 1):
                 self.snake_pos_y = 430 if (self.snake_pos_y - 10) < 40 else self.snake_pos_y - 10
-            if(self.move_down):
+            if(self.direction_of_movement == 0):
                 self.snake_pos_y = 40 if (self.snake_pos_y + 10) > 430 else self.snake_pos_y + 10
-            if(self.move_left):
+            if(self.direction_of_movement == 2):
                 self.snake_pos_x = 590 if (self.snake_pos_x - 10) < 40 else self.snake_pos_x - 10
-            if(self.move_right):
+            if(self.direction_of_movement == 3):
                 self.snake_pos_x = 40 if (self.snake_pos_x + 10) > 590 else self.snake_pos_x + 10
 
     def eat_fruit(self):
@@ -107,7 +111,31 @@ class Fruit:
     def draw_fruit(self):
         pygame.draw.rect(SCREEN, BROWN,
                          Rect(self.fruit_pos_x, self.fruit_pos_y,
-                              SNAKE_LENGTH, SNAKE_WIDTH))
+                              SNAKE_UNIT_LENGTH, SNAKE_UNIT_WIDTH))
+
+    def get_fruit_pos_x(self):
+        return self.fruit_pos_x
+
+    def get_fruit_pos_y(self):
+        return self.fruit_pos_y
+
+    def set_fruit_pos_x(self, fruit_pos_x):
+        self.fruit_pos_x = fruit_pos_x
+
+    def set_fruit_pos_y(self, fruit_pos_y):
+        self.fruit_pos_y = fruit_pos_y
+
+
+def eat_fruit_action(snake, fruit):
+    snake_pos_x = snake.get_snake_pos_x()
+    snake_pos_y = snake.get_snake_pos_y()
+    fruit_pos_x = fruit.get_fruit_pos_x()
+    fruit_pos_y = fruit.get_fruit_pos_y()
+
+    if snake_pos_x == fruit_pos_x and snake_pos_y == fruit_pos_y:
+        snake.eat_fruit()
+        fruit.set_fruit_pos_x(custom_rand_int())
+        fruit.set_fruit_pos_y(custom_rand_int())
 
 
 def play_game():
@@ -116,6 +144,7 @@ def play_game():
                 pygame.quit()
             snake.move_snake(event)
     snake.move()
+    eat_fruit_action(snake, fruit)
     draw_map()
     fruit.draw_fruit()
     snake.draw_snake()
