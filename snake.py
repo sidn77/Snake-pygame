@@ -1,6 +1,5 @@
 import random
 import pygame
-import copy
 from pygame.locals import *
 
 WIDTH = 640
@@ -25,44 +24,49 @@ def custom_rand_int():
     return result
 
 
-def initialize_game(snake):
-    # TODO: Three diff thread for each ?
-    draw_map()
-    snake.draw_snake(snake.get_head(), snake.get_body())
-    fruit.draw_fruit()
-
-
-def draw_map():
-    (x, y) = (40, 40)
-    (x1, y1) = (560, 400)
-    pygame.draw.rect(SCREEN, GREEN, Rect(x, y, x1, y1))
-
-
 class Unit_Snake:
     snake_pos_x = custom_rand_int()
     snake_pos_y = custom_rand_int()
-    accretion = 1
-    counter = 0
+    snake_prev_x = 0
+    snake_prev_y = 0
     accelaration = 10
     direction_of_movement = -1
 
     def get_snake_pos_x(self):
         return self.snake_pos_x
 
-    def get_snake_pos_y(self):
-        return self.snake_pos_y
-
     def set_snake_pos_x(self, snake_pos_x):
         self.snake_pos_x = snake_pos_x
+
+    def get_snake_pos_y(self):
+        return self.snake_pos_y
 
     def set_snake_pos_y(self, snake_pos_y):
         self.snake_pos_y = snake_pos_y
 
-    def get_direction_of_movement():
-        return direction_of_movement
+    def get_snake_prev_x(self):
+        return self.snake_prev_x
+
+    def set_snake_prev_x(self, snake_prev_x):
+        self.snake_prev_x = snake_prev_x
+
+    def get_snake_prev_y(self):
+        return self.snake_prev_y
+
+    def set_snake_prev_y(self, snake_prev_y):
+        self.snake_prev_y = snake_prev_y
+
+    def get_direction_of_movement(self):
+        return self.direction_of_movement
 
     def set_direction_of_movement(self, direction_of_movement):
         self.direction_of_movement = direction_of_movement
+
+    def get_accelaration(self):
+        return self.accelaration
+
+    def set_accelaration(self, accelaration):
+        self.accelaration = accelaration
 
     def draw_snake(self):
         pygame.draw.rect(SCREEN, BROWN,
@@ -118,18 +122,21 @@ class Fruit:
 def eat_fruit_action(snake, fruit):
     snake_pos_x = snake.get_snake_pos_x()
     snake_pos_y = snake.get_snake_pos_y()
+
     fruit_pos_x = fruit.get_fruit_pos_x()
     fruit_pos_y = fruit.get_fruit_pos_y()
 
     if snake_pos_x == fruit_pos_x and snake_pos_y == fruit_pos_y:
-        # snake.eat_fruit()
+        snake.eat_fruit()
         fruit.set_fruit_pos_x(custom_rand_int())
         fruit.set_fruit_pos_y(custom_rand_int())
 
 
 class Snake:
     head = Unit_Snake()
+    tail = None
     body = []
+    accelaration = 10
 
     def __init__(self):
         self.head = Unit_Snake()
@@ -137,14 +144,45 @@ class Snake:
         self.head.set_snake_pos_y(custom_rand_int())
         self.body.append(self.head)
 
-    def draw_snake(self, head, body):
-        # Pop snake_unit from body to pop it
-        self.head.draw_snake()
+    def draw_snake(self):
+        for unit in self.body:
+            unit.draw_snake()
 
     def move_snake(self, direction):
-        # Pop snake_unit from body to move it
+        body_length = len(self.body)
+        leader_x = self.head.get_snake_pos_x()
+        leader_y = self.head.get_snake_pos_y()
         self.head.set_direction_of_movement(direction)
         self.head.move()
+
+        for index in xrange(1, body_length):
+            unit = self.body[index]
+            unit.set_snake_prev_x(unit.get_snake_pos_x())
+            unit.set_snake_prev_y(unit.get_snake_pos_y())
+            unit.set_snake_pos_x(leader_x)
+            unit.set_snake_pos_y(leader_y)
+            leader_x = unit.get_snake_prev_x()
+            leader_y = unit.get_snake_prev_y()
+
+    def eat_fruit(self):
+        new_unit = Unit_Snake()
+        x_increment = 0
+        y_increment = 0
+        tail = self.body[len(self.body) - 1]
+        direction_of_movement = tail.get_direction_of_movement()
+        if(direction_of_movement == K_UP):
+            y_increment = y_increment + new_unit.accelaration
+        if(direction_of_movement == K_DOWN):
+            y_increment = y_increment - new_unit.accelaration
+        if(direction_of_movement == K_LEFT):
+            x_increment = x_increment + new_unit.accelaration
+        if(direction_of_movement == K_RIGHT):
+            x_increment = x_increment - new_unit.accelaration
+
+        new_unit.set_snake_pos_x(tail.get_snake_pos_x() + x_increment)
+        new_unit.set_snake_pos_y(tail.get_snake_pos_y() + y_increment)
+        new_unit.set_direction_of_movement(direction_of_movement)
+        self.body.append(new_unit)
 
     def get_snake_pos_x(self):
         return self.head.get_snake_pos_x()
@@ -160,12 +198,17 @@ class Snake:
 
 
 def play_game(snake, direction):
-    snake.move_snake(direction)
-    eat_fruit_action(snake, fruit)
     draw_map()
     fruit.draw_fruit()
-    copy_body = [copy.deepcopy(snake.get_body())]
-    snake.draw_snake(snake.get_head(), copy_body)
+    snake.move_snake(direction)
+    eat_fruit_action(snake, fruit)
+    snake.draw_snake()
+
+
+def draw_map():
+    (x, y) = (40, 40)
+    (x1, y1) = (560, 400)
+    pygame.draw.rect(SCREEN, GREEN, Rect(x, y, x1, y1))
 
 
 if __name__ == "__main__":
@@ -174,7 +217,6 @@ if __name__ == "__main__":
     snake = Snake()
     fruit = Fruit()
     direction = -1
-    initialize_game(snake)
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -185,4 +227,3 @@ if __name__ == "__main__":
         pygame.display.update()
         clock = pygame.time.Clock()
         clock.tick(9)
-        # print clock
