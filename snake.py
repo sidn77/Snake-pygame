@@ -166,21 +166,10 @@ class Snake:
 
     def eat_fruit(self):
         new_unit = Unit_Snake()
-        x_increment = 0
-        y_increment = 0
         tail = self.body[len(self.body) - 1]
         direction_of_movement = tail.get_direction_of_movement()
-        if(direction_of_movement == K_UP):
-            y_increment = y_increment + new_unit.accelaration
-        if(direction_of_movement == K_DOWN):
-            y_increment = y_increment - new_unit.accelaration
-        if(direction_of_movement == K_LEFT):
-            x_increment = x_increment + new_unit.accelaration
-        if(direction_of_movement == K_RIGHT):
-            x_increment = x_increment - new_unit.accelaration
-
-        new_unit.set_snake_pos_x(tail.get_snake_pos_x() + x_increment)
-        new_unit.set_snake_pos_y(tail.get_snake_pos_y() + y_increment)
+        new_unit.set_snake_pos_x(tail.get_snake_pos_x())
+        new_unit.set_snake_pos_y(tail.get_snake_pos_y())
         new_unit.set_direction_of_movement(direction_of_movement)
         self.body.append(new_unit)
 
